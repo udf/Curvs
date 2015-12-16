@@ -5,7 +5,7 @@ StartAngle=0
 RotationAngle=0.78539816339745
 LineStart=60
 LineLength=100
-HoverColor=235,213,146,200
+HoverColor=235,213,146
 [Section1_2]
 Meter=Roundline
 MeterStyle=Section
@@ -13,7 +13,7 @@ StartAngle=0.78539816339745
 RotationAngle=0.78539816339745
 LineStart=60
 LineLength=100
-HoverColor=191,235,146,200
+HoverColor=191,235,146
 [Section1_3]
 Meter=Roundline
 MeterStyle=Section
@@ -21,7 +21,7 @@ StartAngle=1.5707963267949
 RotationAngle=0.78539816339745
 LineStart=60
 LineLength=100
-HoverColor=146,235,168,200
+HoverColor=146,235,168
 [Section1_4]
 Meter=Roundline
 MeterStyle=Section
@@ -29,7 +29,7 @@ StartAngle=2.3561944901923
 RotationAngle=0.78539816339745
 LineStart=60
 LineLength=100
-HoverColor=146,235,235,200
+HoverColor=146,235,235
 [Section1_5]
 Meter=Roundline
 MeterStyle=Section
@@ -37,7 +37,7 @@ StartAngle=3.1415926535898
 RotationAngle=0.78539816339745
 LineStart=60
 LineLength=100
-HoverColor=146,168,235,200
+HoverColor=146,168,235
 [Section1_6]
 Meter=Roundline
 MeterStyle=Section
@@ -45,7 +45,7 @@ StartAngle=3.9269908169872
 RotationAngle=0.78539816339745
 LineStart=60
 LineLength=100
-HoverColor=191,146,235,200
+HoverColor=191,146,235
 [Section1_7]
 Meter=Roundline
 MeterStyle=Section
@@ -53,7 +53,7 @@ StartAngle=4.7123889803847
 RotationAngle=0.78539816339745
 LineStart=60
 LineLength=100
-HoverColor=235,146,213,200
+HoverColor=235,146,213
 [Section1_8]
 Meter=Roundline
 MeterStyle=Section
@@ -61,7 +61,7 @@ StartAngle=5.4977871437821
 RotationAngle=0.78539816339745
 LineStart=60
 LineLength=100
-HoverColor=235,146,146,200
+HoverColor=235,146,146
 [Section2_1]
 Meter=Roundline
 MeterStyle=Section
@@ -69,7 +69,7 @@ StartAngle=0.39269908169872
 RotationAngle=0.78539816339745
 LineStart=100
 LineLength=150
-HoverColor=235,213,146,200
+HoverColor=235,213,146
 [Section2_2]
 Meter=Roundline
 MeterStyle=Section
@@ -77,7 +77,7 @@ StartAngle=1.1780972450962
 RotationAngle=0.78539816339745
 LineStart=100
 LineLength=150
-HoverColor=191,235,146,200
+HoverColor=191,235,146
 [Section2_3]
 Meter=Roundline
 MeterStyle=Section
@@ -85,7 +85,7 @@ StartAngle=1.9634954084936
 RotationAngle=0.78539816339745
 LineStart=100
 LineLength=150
-HoverColor=146,235,168,200
+HoverColor=146,235,168
 [Section2_4]
 Meter=Roundline
 MeterStyle=Section
@@ -93,7 +93,7 @@ StartAngle=2.7488935718911
 RotationAngle=0.78539816339745
 LineStart=100
 LineLength=150
-HoverColor=146,235,235,200
+HoverColor=146,235,235
 [Section2_5]
 Meter=Roundline
 MeterStyle=Section
@@ -101,7 +101,7 @@ StartAngle=3.5342917352885
 RotationAngle=0.78539816339745
 LineStart=100
 LineLength=150
-HoverColor=146,168,235,200
+HoverColor=146,168,235
 [Section2_6]
 Meter=Roundline
 MeterStyle=Section
@@ -109,7 +109,7 @@ StartAngle=4.319689898686
 RotationAngle=0.78539816339745
 LineStart=100
 LineLength=150
-HoverColor=191,146,235,200
+HoverColor=191,146,235
 [Section2_7]
 Meter=Roundline
 MeterStyle=Section
@@ -117,7 +117,7 @@ StartAngle=5.1050880620834
 RotationAngle=0.78539816339745
 LineStart=100
 LineLength=150
-HoverColor=235,146,213,200
+HoverColor=235,146,213
 [Section2_8]
 Meter=Roundline
 MeterStyle=Section
@@ -125,7 +125,7 @@ StartAngle=5.8904862254809
 RotationAngle=0.78539816339745
 LineStart=100
 LineLength=150
-HoverColor=235,146,146,200
+HoverColor=235,146,146
 [CircleBorder0]
 Meter=Roundline
 MeterStyle=Section|CircleBorder

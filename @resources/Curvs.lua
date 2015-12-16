@@ -13,11 +13,16 @@ function Initialize()
    tC.f.Border = function(s1, s2) return ("Border%s_%s"):format(s1, s2) end
    tC.f.CircleBorder = function(s1) return ("CircleBorder%s"):format(s1) end
    tC.f.RingMeterPre = function(s1) return ("Ring%s."):format(s1) end
+   tC.f.ConfigPre = function(s1, s2) return ("%ss%s"):format(s1, s2) end
 
    tC.m = {} -- Meters and measures
-   tC.m.CenterText = SKIN:GetMeter("MeterCenterText")
-   tC.m.Center = SKIN:GetMeter("MeterCenter")
+   tC.m.CenterText = SKIN:GetMeter("CenterText")
+   tC.m.Center = SKIN:GetMeter("Center")
 
+   tC.a = {} -- Animation constants
+   -- Distance / (Anim time / Update rate)
+   tC.a.SectionFadeInStep = 200 / (100 / 16)
+   tC.a.SectionFadeOutStep = 200 / (500 / 16)
 
 
    -- Class definitions
@@ -30,10 +35,10 @@ function Initialize()
       iniSectionBuilder = class(function(o, sSectionName, oParent)
          o.oParent = oParent
          o.tData = {}
-         table.insert(o.tData, ('\[%s\]'):format(sSectionName))
+         table.insert(o.tData, ("\[%s\]"):format(sSectionName))
       end)
       function iniSectionBuilder:AddKey(sKey, sVal)
-         table.insert(self.tData, ('%s=%s'):format(sKey, sVal))
+         table.insert(self.tData, ("%s=%s"):format(sKey, sVal))
       end
       function iniSectionBuilder:Commit()
          local iParentSize = #self.oParent.tData
@@ -45,10 +50,51 @@ function Initialize()
       return iniSectionBuilder(sSectionName, self)
    end
    function iniBuilder:ToString()
-      return table.concat(self.tData, '\n')
+      return table.concat(self.tData, "\n")
    end
 
-   -- TODO: Add an animator class that controls the section fade (in/out) animations
+   -- Animator: Animates a value from nItitial to nTarget iFrames times, allows changing nTarget and iFrames mid animation
+   Animator = class(function(o, nItitial, nStep, updateFunc)
+      o.nCurrent = nItitial
+      o.nTarget = nItitial
+      o.nStep = nStep
+      o.updateFunc = updateFunc
+      o.running = false
+   end)
+   -- Sets a new target for the animator
+   function Animator:SetTarget(nTarget, nStep)
+      if nTarget == nil then return false end
+      if nStep ~= nil then
+         self.nStep = nStep
+      end
+      self.nTarget = nTarget
+
+      if self.nCurrent < nTarget then
+         -- Make nStep positive
+         if self.nStep < 0 then self.nStep = -(self.nStep) end
+      elseif self.nCurrent > nTarget then
+         -- Make nStep negative
+         if self.nStep > 0 then self.nStep = -(self.nStep) end
+      end
+
+      self.running = true
+
+      return true
+   end
+   -- Steps the animator one frame up and returns the new value, optionally calling self.updateFunc if it is a valid function
+   function Animator:Update()
+      if self.running then 
+         self.nCurrent = self.nCurrent + self.nStep
+
+         if (self.nStep > 0 and self.nCurrent >= self.nTarget) or (self.nStep < 0 and self.nCurrent <= self.nTarget) then
+            self.nCurrent = self.nTarget
+            self.running = false
+         end
+      end
+
+      if type(self.updateFunc) == "function" then self.updateFunc(self.nCurrent) end
+      return self.nCurrent
+   end
 
 
 
@@ -57,9 +103,36 @@ function Initialize()
 		rebuildSkin()
 	end
 
+
+   -- Create an animator for the center image
+   oCenterAnim = Animator(
+      0,
+      tC.a.SectionFadeOutStep,
+      function(nVal)
+         SKIN:Bang("!SetOption", "Center", "ImageAlpha", math.floor(nVal))
+      end
+   )
+   -- Create an animator for the other center image
+   oCenterFadeAnim = Animator(
+      0,
+      tC.a.SectionFadeOutStep,
+      function(nVal)
+         SKIN:Bang("!SetOption", "CenterFade", "ImageAlpha", math.floor(nVal))
+      end
+   )
+
+
 	-- Set up hit testing
-	tHitTest = {
+	tHT = {
       HalfSize = RmGetInt("Size", 1) / 2,
+
+      last = {
+         ring = nil,
+         sect = nil,
+         isValid = function()
+            return tHT.last.ring ~= nil and tHT.last.sect ~= nil
+         end
+      },
 
       Mouse = {
          isOver = false, -- True if the mouse if over our skin
@@ -69,8 +142,10 @@ function Initialize()
          oldY = nil,
       },
 
+      animators = {}, -- Each section gets an animator object, store them here for easy access later on
       cache = {}
    }
+
    -- Build the hit testing cache
    --[[
       cache = {
@@ -79,11 +154,15 @@ function Initialize()
             Max, // Max radius of this ring
             Count, // Number of sections in the ring
             [n] = { // Each section is in an array index
-               sM, // String name of this section's meter
-               oM, // meter object of this section's meter
+               sM, // String name of this section"s meter
+               oM, // meter object of this section"s meter
                Min, // Min angle
                Max, // Max angle
                Special, // True if Min is greater than Max (ie the section covers an area that overlaps angle = 0)
+               Col, // The color of this section
+               Image, // The image to show when this section is selected
+               Bang, // The bang to execute when this section is clicked
+               Animator, // Animator object that controls the fade in/out of this section
             },
          },
       }
@@ -91,18 +170,18 @@ function Initialize()
    local iCurRad = tC.StartRadius
    for iRing=1,tC.Count do
       local sPre = tC.f.RingMeterPre(iRing)
-      tHitTest.cache[iRing] = {}
-      tHitTest.cache[iRing].Min = iCurRad
+      tHT.cache[iRing] = {}
+      tHT.cache[iRing].Min = iCurRad
       iCurRad = iCurRad + RmGetInt(sPre .. "Size", 50)
-      tHitTest.cache[iRing].Max = iCurRad
+      tHT.cache[iRing].Max = iCurRad
 
       local iCount = RmGetInt(sPre .. "Count", 1)
 
-      tHitTest.cache[iRing].Count = iCount
+      tHT.cache[iRing].Count = iCount
       
       for iSect=1,iCount do
-         tHitTest.cache[iRing][iSect] = {}
-         local o = tHitTest.cache[iRing][iSect]
+         tHT.cache[iRing][iSect] = {}
+         local o = tHT.cache[iRing][iSect]
 
          o.sM = tC.f.Meter(iRing, iSect)
          o.oM = SKIN:GetMeter(o.sM)
@@ -112,11 +191,30 @@ function Initialize()
 
          o.Special = (o.Min > o.Max)
 
-         -- TODO: Cache configuration information here, create an animator object for each section cache that shit too
+         local sPre = tC.f.ConfigPre(iRing, iSect)
+         o.Col = StripAlpha(SKIN:GetVariable(sPre .. "Color", ""))
+         if o.Col == nil then
+            o.Col = o.oM:GetOption("HoverColor")
+         end
+
+         o.Image = SKIN:GetVariable(sPre .. "Image", "")
+
+         o.Bang = SKIN:GetVariable(sPre .. "Bang", "")
+
+         o.Animator = Animator(
+               200,
+               tC.a.SectionFadeOutStep,
+               function(nVal)
+                  SKIN:Bang("!SetOption", o.sM, "LineColor", o.Col .. "," .. math.floor(nVal))
+               end
+            )
+         o.Animator:SetTarget(1, 3)
+         table.insert(tHT.animators, o.Animator)
       end
    end
 
-   function tHitTest:Update()
+
+   function tHT:Update()
       -- Only hit test if the mouse is over our skin
       if not self.Mouse.isOver then return end
 
@@ -124,12 +222,12 @@ function Initialize()
       local iX = self.Mouse.oX:GetValue()
       local iY = self.Mouse.oY:GetValue()
 
-      -- Skip hit testing if the previous update cycle already processed it
+      -- Skip hit testing if the previous update cycle already processed these coordinates
       if self.oldX == iX and self.oldY == iY then return end
       self.oldX = iX
       self.oldY = iY      
 
-      -- Cursor position relative to a Cartesian plane whose origin is at the center of client area of our skin's window
+      -- Cursor position relative to a Cartesian plane whose origin is at the center of client area of our skin"s window
       local iCX = iX - self.HalfSize
       local iCY = -(iY - self.HalfSize)
       -- Cursor position in polar coordinates relative to the above values
@@ -159,30 +257,87 @@ function Initialize()
          end
       end
 
-
       if iRing ~= nil and iSect ~= nil then
-         -- TODO: Process animations and config info to actually make the launcher functional
-         SKIN:Bang("!SetOption", "MeterCenterText", "Text", ("%ss%s"):format(iRing, iSect))
+         -- TODO: Process config info to actually make the launcher functional
+         if iRing ~= self.last.ring or iSect ~= self.last.sect then
+            if self.last.isValid() then
+               self.cache[self.last.ring][self.last.sect].Animator:SetTarget(1, tC.a.SectionFadeOutStep)
+
+               SKIN:Bang("!SetOption", "CenterFade", "ImageName", self.cache[self.last.ring][self.last.sect].Image)
+               SKIN:Bang("!SetOption", "CenterFade", "ImageAlpha", 255)
+               oCenterFadeAnim.nCurrent = 255
+               oCenterFadeAnim:SetTarget(0, tC.a.SectionFadeInStep)
+            end
+            self.last.ring = iRing
+            self.last.sect = iSect
+
+            self.cache[iRing][iSect].Animator:SetTarget(200, tC.a.SectionFadeInStep)
+            if self.cache[iRing][iSect].Image == "" then
+               SKIN:Bang("!SetOption", "CenterText", "Text", ("%ss%s"):format(iRing, iSect))
+               oCenterAnim:SetTarget(0, tC.a.SectionFadeInStep)
+            else
+               SKIN:Bang("!SetOption", "Center", "ImageName", self.cache[iRing][iSect].Image)
+               oCenterAnim:SetTarget(255, tC.a.SectionFadeInStep)
+            end
+         end
       else
-         SKIN:Bang("!SetOption", "MeterCenterText", "Text", "")
+         SKIN:Bang("!SetOption", "CenterText", "Text", "")
       end
    end
 end
 
+
+
 function Update()
-   tHitTest:Update()
+   tHT:Update()
+
+   oCenterAnim:Update()
+   oCenterFadeAnim:Update()
+
+   for i=1,#tHT.animators do
+      tHT.animators[i]:Update()
+   end
 end
+
+
+
+-- Mouse events
+function onHover()
+   tHT.Mouse.isOver = true
+   tC.m.CenterText:Show()
+end
+function onLeave()
+   tHT.Mouse.isOver = false
+   tC.m.CenterText:Hide()
+   oCenterAnim:SetTarget(0, tC.a.SectionFadeInStep)
+
+   if tHT.last.isValid() then
+      tHT.cache[tHT.last.ring][tHT.last.sect].Animator:SetTarget(1, tC.a.SectionFadeOutStep)
+
+      tHT.last.ring = nil
+      tHT.last.sect = nil
+   end
+end
+function onClick()
+   if tHT.last.isValid() then
+      if tHT.cache[tHT.last.ring][tHT.last.sect].Bang ~= "" then
+         SKIN:Bang(tHT.cache[tHT.last.ring][tHT.last.sect].Bang)
+      end
+   end
+end
+
+
 
 function rebuildSkin()
 	-- If rebuild was selected from the context menu then we should refresh the skin (to reload the variables) and then rebuild the meters
 	if RmGetInt("Rebuild", 0) ~= 1 then
 		-- Write a key to the ini so that we know next time that we should call this function to rebuild the meters
-		SKIN:Bang('!WriteKeyValue', 'Variables', 'Rebuild', "1")
-		SKIN:Bang('!Refresh')
+		SKIN:Bang("!WriteKeyValue", "Variables", "Rebuild", "1")
+		SKIN:Bang("!Refresh")
 		return
 	end
 	-- Revert the key to 0 to prevent an infinite loop (which is not as fun as it seems)
-	SKIN:Bang('!WriteKeyValue', 'Variables', 'Rebuild', "0")
+	SKIN:Bang("!WriteKeyValue", "Variables", "Rebuild", "0")
 
    local iCurRad = tC.StartRadius -- Current radius
    local oMeters = iniBuilder() -- iniBuilder for the meters
@@ -222,7 +377,7 @@ function rebuildSkin()
             o:AddKey("RotationAngle", PI2 / iCount)
             o:AddKey("LineStart", iCurRad)
             o:AddKey("LineLength", iEndRadius)
-            o:AddKey("HoverColor", HSLtoRGB(iSect/iCount, 0.7, 0.75) .. ",200")
+            o:AddKey("HoverColor", HSLtoRGB(iSect/iCount, 0.7, 0.75))
          o:Commit()
 
          if iCount > 1 then
@@ -245,26 +400,14 @@ function rebuildSkin()
    o:Commit()
 
    -- Write the file
-   local file = io.open(SKIN:GetVariable("@") .. "Meters.inc", 'w+')
+   local file = io.open(SKIN:GetVariable("@") .. "Meters.inc", "w+")
    file:write( oMeters:ToString() .. "\n" .. oBorders:ToString() )
    file:close()
    -- Reload the skin
-   SKIN:Bang('!Refresh')
+   SKIN:Bang("!Refresh")
 end
 
--- Mouse events
-function onHover()
-   tHitTest.Mouse.isOver = true
-   tC.m.CenterText:Show()
-   tC.m.Center:Show()
-end
-function onLeave()
-   tHitTest.Mouse.isOver = false
-   tC.m.CenterText:Hide()
-   tC.m.Center:Hide()
-end
-function onClick()
-end
+
 
 -- Helper functions
 -- Returns a rainmeter variable rounded down to an integer
@@ -318,15 +461,44 @@ function ReMapRadians(nRad)
    return n
 end
 
+-- Converts HEX colors to RGB, stripping the alpha value in the process
+function StripAlpha(color)
+   if color:find(",") ~= nil then
+      if color:match("%d+,%d+,%d+") ~= nil then
+         -- RGB with/without alpha
+         return color:match("%d+,%d+,%d+")
+      end
+   else
+      if (color:len() == 8 or color:len() == 6) and color:match("%x+") == color then
+         if color:len() == 8 then
+            -- Hex with alpha, strip the alpha
+            color = color:sub(3)
+         end
+         -- The length of color is now 6 and it is a rgb hex color
+
+         local rgb = ""
+
+         for hex in color:gmatch('..') do
+            rgb = rgb .. "," .. tonumber(hex, 16)
+         end
+
+         return rgb:sub(2)
+      end
+   end
+
+   return nil
+end
+
+
 
 -- class.lua
 -- Compatible with Lua 5.1 (not 5.0).
 function class(base, init)
    local c = {}    -- a new class instance
-   if not init and type(base) == 'function' then
+   if not init and type(base) == "function" then
       init = base
       base = nil
-   elseif type(base) == 'table' then
+   elseif type(base) == "table" then
     -- our new class is a shallow copy of the base class!
       for i,v in pairs(base) do
          c[i] = v
