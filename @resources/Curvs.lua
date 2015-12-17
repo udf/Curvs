@@ -287,12 +287,12 @@ function Initialize()
                oCenterAnim:SetTarget(255, tC.a.SectionFadeInStep)
             end
          end
+         
+         self.last.ring = iRing
+         self.last.sect = iSect
       else
          SKIN:Bang("!SetOption", "CenterText", "Text", "")
       end
-
-      self.last.ring = iRing
-      self.last.sect = iSect
    end
 end
 
