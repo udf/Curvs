@@ -1,8 +1,8 @@
 ; Note: This file contains meters that appear below the borders, until I figure out how to set the zpos on a meter, this is file stays
 [CenterText]
 Meter=String
-W=(sqrt(2 * (#RingStart#**2)))
-H=(sqrt(2 * (#RingStart#**2)))
+W=(sqrt(2 * (#RingCenterSize#**2)))
+H=(sqrt(2 * (#RingCenterSize#**2)))
 X=(#CURRENTCONFIGWIDTH#/2)
 Y=(#CURRENTCONFIGHEIGHT#/2)
 DynamicVariables=1
@@ -21,10 +21,10 @@ ImagePath=#ImagePath#
 ImageName=
 MaskImageName=mask.png
 MaskImagePath=#@#
-W=(#RingStart# * 2 + 2)
-H=(#RingStart# * 2 + 2)
-X=(#CURRENTCONFIGWIDTH# / 2 - (#RingStart# + 1))
-Y=(#CURRENTCONFIGHEIGHT# / 2 - (#RingStart# + 1))
+W=(#RingCenterSize# * 2 + 2)
+H=(#RingCenterSize# * 2 + 2)
+X=(#CURRENTCONFIGWIDTH# / 2 - (#RingCenterSize# + 1))
+Y=(#CURRENTCONFIGHEIGHT# / 2 - (#RingCenterSize# + 1))
 DynamicVariables=1
 AntiAlias=1
 
@@ -34,9 +34,9 @@ ImagePath=#ImagePath#
 ImageName=
 MaskImageName=mask.png
 MaskImagePath=#@#
-W=(#RingStart# * 2 + 2)
-H=(#RingStart# * 2 + 2)
-X=(#CURRENTCONFIGWIDTH# / 2 - (#RingStart# + 1))
-Y=(#CURRENTCONFIGHEIGHT# / 2 - (#RingStart# + 1))
+W=(#RingCenterSize# * 2 + 2)
+H=(#RingCenterSize# * 2 + 2)
+X=(#CURRENTCONFIGWIDTH# / 2 - (#RingCenterSize# + 1))
+Y=(#CURRENTCONFIGHEIGHT# / 2 - (#RingCenterSize# + 1))
 DynamicVariables=1
 AntiAlias=1

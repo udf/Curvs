@@ -4,9 +4,10 @@ function Initialize()
 
 	-- Process configuration variables
 	tC = {}
-	tC.Count = RmGetInt("RingCount", 1)
-	if tC.Count <= 0 then tC.Count = 1 end
-	tC.StartRadius = RmGetInt("RingStart", 60)
+	tC.Count = RmGetUInt("RingCount", 1)
+	if tC.Count == 0 then tC.Count = 1 end
+	tC.StartRadius = RmGetUInt("RingCenterSize", 60)
+   if tC.StartRadius == 0 then tC.StartRadius = 60 end
 
    tC.f = {} -- Formatting functions
    tC.f.Meter = function(s1, s2) return ("Section%s_%s"):format(s1, s2) end
@@ -21,8 +22,10 @@ function Initialize()
 
    tC.a = {} -- Animation constants
    -- Distance / (Anim time / Update rate)
-   tC.a.SectionFadeInStep = 200 / (100 / 16)
+   tC.a.SectionFadeInStep = 200 / (50 / 16)
    tC.a.SectionFadeOutStep = 200 / (500 / 16)
+
+   tC.a.SectionMaxAlpha = 225
 
 
    -- Class definitions
@@ -154,8 +157,8 @@ function Initialize()
             Max, // Max radius of this ring
             Count, // Number of sections in the ring
             [n] = { // Each section is in an array index
-               sM, // String name of this section"s meter
-               oM, // meter object of this section"s meter
+               sM, // String name of this section's meter
+               oM, // meter object of this section's meter
                Min, // Min angle
                Max, // Max angle
                Special, // True if Min is greater than Max (ie the section covers an area that overlaps angle = 0)
@@ -172,10 +175,11 @@ function Initialize()
       local sPre = tC.f.RingMeterPre(iRing)
       tHT.cache[iRing] = {}
       tHT.cache[iRing].Min = iCurRad
-      iCurRad = iCurRad + RmGetInt(sPre .. "Size", 50)
+      iCurRad = iCurRad + RmGetUInt(sPre .. "Size", 50)
       tHT.cache[iRing].Max = iCurRad
 
-      local iCount = RmGetInt(sPre .. "Count", 1)
+      local iCount = RmGetUInt(sPre .. "Count", 1)
+      if iCount == 0 then iCount = 1 end
 
       tHT.cache[iRing].Count = iCount
       
@@ -202,7 +206,7 @@ function Initialize()
          o.Bang = SKIN:GetVariable(sPre .. "Bang", "")
 
          o.Animator = Animator(
-               200,
+               tC.a.SectionMaxAlpha,
                tC.a.SectionFadeOutStep,
                function(nVal)
                   SKIN:Bang("!SetOption", o.sM, "LineColor", o.Col .. "," .. math.floor(nVal))
@@ -212,7 +216,6 @@ function Initialize()
          table.insert(tHT.animators, o.Animator)
       end
    end
-
 
    function tHT:Update()
       -- Only hit test if the mouse is over our skin
@@ -227,7 +230,7 @@ function Initialize()
       self.oldX = iX
       self.oldY = iY      
 
-      -- Cursor position relative to a Cartesian plane whose origin is at the center of client area of our skin"s window
+      -- Cursor position relative to a Cartesian plane whose origin is at the center of client area of our skin's window
       local iCX = iX - self.HalfSize
       local iCY = -(iY - self.HalfSize)
       -- Cursor position in polar coordinates relative to the above values
@@ -247,31 +250,35 @@ function Initialize()
 
       -- Attempt to find out which section the cursor is over
       if iRing ~= nil then
-         for i=1,self.cache[iRing].Count do
-            local o = self.cache[iRing][i]
+         --Single sectioned ring, we are definitely over the only section
+         if self.cache[iRing].Count == 1 then
+            iSect = 1
+         else
+            for i=1,self.cache[iRing].Count do
+               local o = self.cache[iRing][i]
 
-            if (nTheta >= o.Min and nTheta <= o.Max) or (o.Special and (nTheta >= o.Min or nTheta <= o.Max)) then
-               iSect = i
-               break
-            end         
+               if (nTheta >= o.Min and nTheta <= o.Max) or (o.Special and (nTheta >= o.Min or nTheta <= o.Max)) then
+                  iSect = i
+                  break
+               end         
+            end
          end
       end
 
       if iRing ~= nil and iSect ~= nil then
-         -- TODO: Process config info to actually make the launcher functional
          if iRing ~= self.last.ring or iSect ~= self.last.sect then
             if self.last.isValid() then
                self.cache[self.last.ring][self.last.sect].Animator:SetTarget(1, tC.a.SectionFadeOutStep)
 
-               SKIN:Bang("!SetOption", "CenterFade", "ImageName", self.cache[self.last.ring][self.last.sect].Image)
-               SKIN:Bang("!SetOption", "CenterFade", "ImageAlpha", 255)
-               oCenterFadeAnim.nCurrent = 255
-               oCenterFadeAnim:SetTarget(0, tC.a.SectionFadeInStep)
+               if self.cache[self.last.ring][self.last.sect].Image ~= "" then
+                  SKIN:Bang("!SetOption", "CenterFade", "ImageName", self.cache[self.last.ring][self.last.sect].Image)
+                  SKIN:Bang("!SetOption", "CenterFade", "ImageAlpha", 255)
+                  oCenterFadeAnim.nCurrent = 255
+                  oCenterFadeAnim:SetTarget(0, tC.a.SectionFadeInStep)
+               end
             end
-            self.last.ring = iRing
-            self.last.sect = iSect
 
-            self.cache[iRing][iSect].Animator:SetTarget(200, tC.a.SectionFadeInStep)
+            self.cache[iRing][iSect].Animator:SetTarget(tC.a.SectionMaxAlpha, tC.a.SectionFadeInStep)
             if self.cache[iRing][iSect].Image == "" then
                SKIN:Bang("!SetOption", "CenterText", "Text", ("%ss%s"):format(iRing, iSect))
                oCenterAnim:SetTarget(0, tC.a.SectionFadeInStep)
@@ -283,6 +290,9 @@ function Initialize()
       else
          SKIN:Bang("!SetOption", "CenterText", "Text", "")
       end
+
+      self.last.ring = iRing
+      self.last.sect = iSect
    end
 end
 
@@ -353,8 +363,10 @@ function rebuildSkin()
 
    for iRing=1,tC.Count do
       local sPre = tC.f.RingMeterPre(iRing)
-      local iCount = RmGetInt(sPre .. "Count", 1)
-      local iSize = RmGetInt(sPre .. "Size", 50)
+      local iCount = RmGetUInt(sPre .. "Count", 1)
+      if iCount == 0 then iCount = 1 end
+      local iSize = RmGetUInt(sPre .. "Size", 50)
+      if iSize == 0 then iSize = 50 end
       local nOffset = SKIN:ParseFormula( SKIN:GetVariable(sPre .. "Offset", 0) )
       if nOffset == nil then nOffset = 0 end
       local iEndRadius = iCurRad + iSize
@@ -413,6 +425,11 @@ end
 -- Returns a rainmeter variable rounded down to an integer
 function RmGetInt(sVar, iDefault)
 	return math.floor(SKIN:GetVariable(sVar, iDefault))
+end
+
+-- Returns a rainmeter variable rounded down to an integer, negative integers are converted to positive ones
+function RmGetUInt(sVar, iDefault)
+   return math.abs(RmGetInt(sVar, iDefault))
 end
 
 -- Returns a rainmeter variable represented as a (floating point) number

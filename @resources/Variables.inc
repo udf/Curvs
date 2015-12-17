@@ -2,7 +2,7 @@
 BorderColor=255,255,255
 
 RingCount=2
-RingStart=60
+RingCenterSize=60
 
 Ring1.Count=8
 Ring1.Size=40
