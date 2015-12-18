@@ -83,6 +83,7 @@ ControlCommand($hWin2, "", "[CLASS:ComboBox; INSTANCE:2]", "SelectString", "Vist
 ControlCommand($hWin2, "", "[CLASS:SysTabControl32; INSTANCE:1]", "TabRight", "2") ; Go to the next tab
 Sleep(1500)
 ControlSetText($hWin2, "", "[CLASS:Edit; INSTANCE:2]", $sSkin & "\@Resources\Variables.inc") ; Set our variables.inc file
+ControlClick($hWin2, "", "[CLASS:Button; INSTANCE:2]") ; Check the "merge skins" check box
 Sleep(1000)
 
 ; Create the package

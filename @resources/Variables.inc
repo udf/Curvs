@@ -25,3 +25,32 @@ Ring2.Offset=(#2PI#/16)
 1s2Image=firefox.png
 1s2Color=240,150,96
 
+1s3Bang=["C:\Program Files (x86)\Steam\steam.exe"]
+1s3Image=steam.png
+1s3Color=81,81,81
+
+1s4Bang=["C:\Program Files (x86)\Skype\Phone\Skype.exe"]
+1s4Image=skype.png
+1s4Color=81C3E5
+
+1s5Bang=["http://www.reddit.com"]
+1s5Image=reddit.png
+1s5Color=A2DFF9
+
+1s6Bang=["https://imgur.com/"]
+1s6Image=imgur.png
+1s6Color=ABF8B2
+
+1s7Bang=["http://www.4chan.org"]
+1s7Image=4chan.png
+1s7Color=8ACAA7
+
+1s8Bang=["http://www.youtube.com"]
+1s8Image=youtube.png
+1s8Color=FF7171
+
+
+2s1Bang=["minecraft.exe"]
+2s1Image=minecraft.png
+2s1Color=92DD9B
+
