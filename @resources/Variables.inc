@@ -19,6 +19,10 @@ Ring2.Count=8
 Ring2.Size=50
 Ring2.Offset=(#2PI#/16)
 
+; IMPORTANT: Please note that changing any of the Ring... options above require you to rebuild the skin
+; To rebuild the skin, right click on the skin and click on the "Rebuild skin" option in the context menu
+; To see this in action, watch this gif: http://i.imgur.com/bbzx1Q0.gifv
+
 
 
 ; Syntax: [Ring#]s[Section#][Option]
@@ -29,8 +33,7 @@ Ring2.Offset=(#2PI#/16)
 ; For more Information on the Color option, see https://docs.rainmeter.net/manual/skins/option-types/#Color
 
 ; Due to a bug in Rainmeter, your images might end up with jaggy edges. You can avoid this bug by resizing your images to (RingCenterSize*2 + 2)
-; That would be (60*2+2 = 122) with the default images
-
+; That would be 122x122 (60*2+2) with the default RingCenterSize
 1s1Bang=["C:\Program Files (x86)\Google\Chrome\Application\chrome.exe"]
 1s1Image=chrome.png
 1s1Color=76,139,245
