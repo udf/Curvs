@@ -20,3 +20,5 @@ The Variables.inc file that comes with the skin should be enough to learn how to
 
 # License
 This skin is licensed under the [Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International](http://creativecommons.org/licenses/by-nc-sa/4.0/)
+
+Special thanks to [@JuanPotato](https://github.com/juanpotato) for improvments and images
