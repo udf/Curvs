@@ -3,6 +3,9 @@ A "minimalist", fully configurable, Rainmeter launcher
 
 Idea from [this](https://redd.it/3wd6yp) reddit discussion.
 
+Special thanks to [@JuanPotato](https://github.com/juanpotato) for improvments and images
+
+
 # Installation
 * Install Rainmeter from [here](https://www.rainmeter.net/). Download the .rmskin file from [here](https://github.com/eyezis/Curvs/blob/master/Curvs_2.41.rmskin?raw=true) and double click it to install it.
 * After the installation, you should edit `Documents\Rainmeter\Skins\FalloutTerminalv2\@resources\Variables.inc`
@@ -20,5 +23,3 @@ The Variables.inc file that comes with the skin should be enough to learn how to
 
 # License
 This skin is licensed under the [Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International](http://creativecommons.org/licenses/by-nc-sa/4.0/)
-
-Special thanks to [@JuanPotato](https://github.com/juanpotato) for improvments and images
