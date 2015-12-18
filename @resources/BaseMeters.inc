@@ -14,7 +14,7 @@ StringEffect=SHADOW
 FontEffectColor=0,0,0,100
 ClipString=1
 
-; TODO: Figure out how to actually AntiAlias the image when using a resized MaskImage
+; TODO: Figure out how to actually AntiAlias an image when resizing it with a MaskImage
 [Center]
 Meter=Image
 ImagePath=#ImagePath#

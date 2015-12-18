@@ -2,7 +2,7 @@ function Initialize()
 	-- Prevent always multiplying PI by 2 in the rest of the code (minor performance boost) by doing it now
 	PI2 = math.pi * 2
 
-	-- Process configuration variables
+	-- Configuration variables
 	tC = {}
 	tC.Count = RmGetUInt("RingCount", 1)
 	if tC.Count == 0 then tC.Count = 1 end
@@ -21,10 +21,8 @@ function Initialize()
    tC.m.Center = SKIN:GetMeter("Center")
 
    tC.a = {} -- Animation constants
-   -- Distance / (Anim time / Update rate)
-   tC.a.SectionFadeInStep = 200 / (50 / 16)
-   tC.a.SectionFadeOutStep = 200 / (500 / 16)
-
+   tC.a.SectionFadeInStep = 42
+   tC.a.SectionFadeOutStep = 21
    tC.a.SectionMaxAlpha = 225
 
 
@@ -115,7 +113,7 @@ function Initialize()
          SKIN:Bang("!SetOption", "Center", "ImageAlpha", math.floor(nVal))
       end
    )
-   -- Create an animator for the other center image
+   -- Create an animator for the fade center image
    oCenterFadeAnim = Animator(
       0,
       tC.a.SectionFadeOutStep,
