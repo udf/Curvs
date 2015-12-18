@@ -281,6 +281,7 @@ function Initialize()
                SKIN:Bang("!SetOption", "CenterText", "Text", ("%ss%s"):format(iRing, iSect))
                oCenterAnim:SetTarget(0, tC.a.SectionFadeInStep)
             else
+               SKIN:Bang("!SetOption", "CenterText", "Text", "")
                SKIN:Bang("!SetOption", "Center", "ImageName", self.cache[iRing][iSect].Image)
                oCenterAnim:SetTarget(255, tC.a.SectionFadeInStep)
             end
