@@ -10,7 +10,8 @@ Special thanks to [@JuanPotato](https://github.com/juanpotato) for improvments a
 * Install Rainmeter from [here](https://www.rainmeter.net/). Download the .rmskin file from [here](https://github.com/eyezis/Curvs/blob/master/Curvs_2.44.rmskin?raw=true) and double click it to install it.
 * After the installation, you should edit `Documents\Rainmeter\Skins\Curvs\@resources\Variables.inc`
 
-The Variables.inc file that comes with the skin should be enough to learn how to add/remove rings/sections/programs from the launcher. I'll add some documentation to the wiki on this repository as people run into problems.
+The Variables.inc file that comes with the skin should be enough to learn how to add/remove rings/sections/programs from the launcher.  
+For more information on the configuration file see the [wiki](https://github.com/eyezis/Curvs/wiki).
 
 # Features & Images
 * Minimalist design
