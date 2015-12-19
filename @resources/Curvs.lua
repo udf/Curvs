@@ -488,7 +488,7 @@ function StripAlpha(color)
       if (color:len() == 8 or color:len() == 6) and color:match("%x+") == color then
          if color:len() == 8 then
             -- Hex with alpha, strip the alpha
-            color = color:sub(3)
+            color = color:sub(1, 6)
          end
          -- The length of color is now 6 and it is a rgb hex color
 
