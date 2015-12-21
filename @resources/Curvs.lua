@@ -18,7 +18,6 @@ function Initialize()
 
    tC.m = {} -- Meters and measures
    tC.m.CenterText = SKIN:GetMeter("CenterText")
-   tC.m.Center = SKIN:GetMeter("Center")
 
    tC.a = {} -- Animation constants
    tC.a.SectionFadeInStep = 42
@@ -269,21 +268,17 @@ function Initialize()
                self.cache[self.last.ring][self.last.sect].Animator:SetTarget(1, tC.a.SectionFadeOutStep)
 
                if self.cache[self.last.ring][self.last.sect].Image ~= "" then
-                  SKIN:Bang("!SetOption", "CenterFade", "ImageName", self.cache[self.last.ring][self.last.sect].Image)
-                  SKIN:Bang("!SetOption", "CenterFade", "ImageAlpha", 255)
-                  oCenterFadeAnim.nCurrent = 255
-                  oCenterFadeAnim:SetTarget(0, tC.a.SectionFadeInStep)
+                  ShowFader(self.cache[self.last.ring][self.last.sect].Image)
                end
             end
 
             self.cache[iRing][iSect].Animator:SetTarget(tC.a.SectionMaxAlpha, tC.a.SectionFadeInStep)
             if self.cache[iRing][iSect].Image == "" then
                SKIN:Bang("!SetOption", "CenterText", "Text", ("%ss%s"):format(iRing, iSect))
-               oCenterAnim:SetTarget(0, tC.a.SectionFadeInStep)
+               HideImage()
             else
                SKIN:Bang("!SetOption", "CenterText", "Text", "")
-               SKIN:Bang("!SetOption", "Center", "ImageName", self.cache[iRing][iSect].Image)
-               oCenterAnim:SetTarget(255, tC.a.SectionFadeInStep)
+               ShowImage(self.cache[iRing][iSect].Image)
             end
          end
          
@@ -310,6 +305,22 @@ end
 
 
 
+function HideImage()
+   oCenterAnim:SetTarget(0, tC.a.SectionFadeInStep)
+end
+function ShowImage(sImageName)
+   SKIN:Bang("!SetOption", "Center", "ImageName", sImageName)
+   oCenterAnim:SetTarget(255, tC.a.SectionFadeInStep)
+end
+function ShowFader(sImageName)
+   SKIN:Bang("!SetOption", "CenterFade", "ImageName", sImageName)
+   SKIN:Bang("!SetOption", "CenterFade", "ImageAlpha", 255)
+   oCenterFadeAnim.nCurrent = 255
+   oCenterFadeAnim:SetTarget(0, tC.a.SectionFadeInStep)
+end
+
+
+
 -- Mouse events
 function onHover()
    tHT.Mouse.isOver = true
@@ -318,7 +329,7 @@ end
 function onLeave()
    tHT.Mouse.isOver = false
    tC.m.CenterText:Hide()
-   oCenterAnim:SetTarget(0, tC.a.SectionFadeInStep)
+   HideImage()
 
    if tHT.last.isValid() then
       tHT.cache[tHT.last.ring][tHT.last.sect].Animator:SetTarget(1, tC.a.SectionFadeOutStep)
