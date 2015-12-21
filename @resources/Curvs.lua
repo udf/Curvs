@@ -108,17 +108,13 @@ function Initialize()
    oCenterAnim = Animator(
       0,
       tC.a.SectionFadeOutStep,
-      function(nVal)
-         SKIN:Bang("!SetOption", "Center", "ImageAlpha", math.floor(nVal))
-      end
+      AnimateImage
    )
    -- Create an animator for the fade center image
    oCenterFadeAnim = Animator(
       0,
       tC.a.SectionFadeOutStep,
-      function(nVal)
-         SKIN:Bang("!SetOption", "CenterFade", "ImageAlpha", math.floor(nVal))
-      end
+      AnimateFader
    )
 
 
@@ -317,6 +313,12 @@ function ShowFader(sImageName)
    SKIN:Bang("!SetOption", "CenterFade", "ImageAlpha", 255)
    oCenterFadeAnim.nCurrent = 255
    oCenterFadeAnim:SetTarget(0, tC.a.SectionFadeInStep)
+end
+function AnimateImage(nAlpha)
+   SKIN:Bang("!SetOption", "Center", "ImageAlpha", math.floor(nAlpha))
+end
+function AnimateFader(nAlpha)
+   SKIN:Bang("!SetOption", "CenterFade", "ImageAlpha", math.floor(nAlpha))
 end
 
 
