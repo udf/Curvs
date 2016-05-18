@@ -8,6 +8,7 @@ function Initialize()
 	if tC.Count == 0 then tC.Count = 1 end
 	tC.StartRadius = RmGetUInt("RingCenterSize", 60)
 	if tC.StartRadius == 0 then tC.StartRadius = 60 end
+   tC.iBorderTk = 2
 
 	tC.f = {} -- Formatting functions
 	tC.f.Meter = function(s1, s2) return ("Section%s_%s"):format(s1, s2) end
@@ -370,7 +371,7 @@ function rebuildSkin()
 		o:AddKey("Meter", "Roundline")
 		o:AddKey("MeterStyle", "Section|CircleBorder")
 		o:AddKey("LineStart", iCurRad)
-		o:AddKey("LineLength", iCurRad + 2)
+      o:AddKey("LineLength", iCurRad + tC.iBorderTk)
 	o:Commit()
 
 	for iRing=1,tC.Count do
@@ -388,17 +389,18 @@ function rebuildSkin()
 			o:AddKey("Meter", "Roundline")
 			o:AddKey("MeterStyle", "Section|CircleBorder")
 			o:AddKey("LineStart", iEndRadius)
-			o:AddKey("LineLength", iEndRadius + 2)
+         o:AddKey("LineLength", iEndRadius + tC.iBorderTk)
 		o:Commit()
 
 		for iSect=1,iCount do
 			local nStartAngle = PI2 / iCount * (iSect-1) + nOffset
+         local nBorderOffset = (tC.iBorderTk / (PI2 * iEndRadius)) * math.pi
 
 			o = oMeters:NewSection( tC.f.Meter(iRing, iSect) )
 				o:AddKey("Meter", "Roundline")
 				o:AddKey("MeterStyle", "Section")
-				o:AddKey("StartAngle", nStartAngle)
-				o:AddKey("RotationAngle", PI2 / iCount)
+            o:AddKey("StartAngle", nStartAngle + nBorderOffset)
+            o:AddKey("RotationAngle", PI2 / iCount - nBorderOffset*2)
 				o:AddKey("LineStart", iCurRad)
 				o:AddKey("LineLength", iEndRadius)
 				o:AddKey("HoverColor", HSLtoRGB(iSect/iCount, 0.7, 0.75))
@@ -412,15 +414,16 @@ function rebuildSkin()
 					o:AddKey("RotationAngle", PI2 / iCount)
 					o:AddKey("LineStart", iCurRad)
 					o:AddKey("LineLength", iEndRadius)
+               o:AddKey("LineWidth", tC.iBorderTk)
 				o:Commit()
 			end
 		end
 
-		iCurRad = iEndRadius
+      iCurRad = iEndRadius + tC.iBorderTk
 	end
 
 	o = oBorders:NewSection("Variables")
-		o:AddKey("Size", iCurRad * 2 + 4)
+      o:AddKey("Size", iCurRad * 2 + tC.iBorderTk*2)
 	o:Commit()
 
 	-- Write the file
