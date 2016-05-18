@@ -68,9 +68,16 @@ function Update()
 
 		local nRstart = UInt( v.o:GetOption("LineStart", 0) )
 		local nRend = UInt( v.o:GetOption("LineLength", 1) )
-		local nAstart = ReMapRadians( SKIN:ParseFormula(v.o:GetOption("StartAngle", 1)) )
-		local nAend = ReMapRadians( nAstart + SKIN:ParseFormula(v.o:GetOption("RotationAngle", 1)) )
-
+		local nAstart = SKIN:ParseFormula(v.o:GetOption("StartAngle", 1))
+		local nAend = nAstart + SKIN:ParseFormula(v.o:GetOption("RotationAngle", 1))
+		if math.abs(nAend - nAstart) >= PI2 then -- If the angle covered by the meter is greater or equal to a full revolution
+			-- The meter covers a full revolution
+			nAstart = 0
+			nAend = 0
+		end
+		nAstart = ReMapRadians(nAstart)
+		nAend = ReMapRadians(nAend)
+		
 		if (nRadius >= nRstart and nRadius <= nRend) and IsAngleInRange(nTheta, nAstart, nAend) then
 			if v.fOver == false then
 				-- On hover
@@ -119,6 +126,8 @@ function UInt(n)
 end
 
 function IsAngleInRange(nAngle, nMin, nMax)
+	print(nAngle, nMin, nMax)
+
 	if nMin == nMax then
 		return true
 	end

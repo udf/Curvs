@@ -159,8 +159,6 @@ function Initialize()
 			table.insert(tHT.animators, o.Animator)
 		end
 	end
-
-	--SKIN:Bang("!SetOption", "CenterText", "Text", "")
 end
 
 
@@ -280,6 +278,7 @@ function rebuildSkin()
 		for iSect=1,iCount do
 			local nStartAngle = PI2 / iCount * (iSect-1) + nOffset
 			local nBorderOffset = (tC.iBorderTk / (PI2 * iEndRadius)) * math.pi
+			if iCount <= 1 then nBorderOffset = 0 end
 
 			sMeters = sMeters .. tC.f.Meter(iRing, iSect) .. " "
 			o = oMeters:NewSection( tC.f.Meter(iRing, iSect) )
