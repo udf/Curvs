@@ -8,14 +8,13 @@ function Initialize()
 	if tC.Count == 0 then tC.Count = 1 end
 	tC.StartRadius = RmGetUInt("RingCenterSize", 60)
 	if tC.StartRadius == 0 then tC.StartRadius = 60 end
-   tC.iBorderTk = 2
+	tC.iBorderTk = 2
 
 	tC.f = {} -- Formatting functions
-	tC.f.Meter = function(s1, s2) return ("Section%s_%s"):format(s1, s2) end
-	tC.f.Border = function(s1, s2) return ("Border%s_%s"):format(s1, s2) end
-	tC.f.CircleBorder = function(s1) return ("CircleBorder%s"):format(s1) end
+	tC.f.Meter = function(s1, s2) return ("%ss%s"):format(s1, s2) end
+	tC.f.Border = function(s1, s2) return ("b%s_%s"):format(s1, s2) end
+	tC.f.CircleBorder = function(s1) return ("cb%s"):format(s1) end
 	tC.f.RingMeterPre = function(s1) return ("Ring%s."):format(s1) end
-	tC.f.ConfigPre = function(s1, s2) return ("%ss%s"):format(s1, s2) end
 
 	tC.m = {} -- Meters and measures
 	tC.m.CenterText = SKIN:GetMeter("CenterText")
@@ -23,7 +22,7 @@ function Initialize()
 	tC.a = {} -- Animation constants
 	tC.a.SectionFadeInStep = 42
 	tC.a.SectionFadeOutStep = 21
-	tC.a.SectionMaxAlpha = 225
+	tC.a.SectionMaxAlpha = 255
 
 
 	-- Class definitions
@@ -121,75 +120,25 @@ function Initialize()
 
 	-- Set up hit testing
 	tHT = {
-		HalfSize = RmGetInt("Size", 1) / 2,
-
-		last = {
-			ring = nil,
-			sect = nil,
-			isValid = function()
-				return tHT.last.ring ~= nil and tHT.last.sect ~= nil
-			end
-		},
-
-		Mouse = {
-			isOver = false, -- True if the mouse if over our skin
-			oX = SKIN:GetMeasure("MouseX"),
-			oY = SKIN:GetMeasure("MouseY"),
-			oldX = nil,
-			oldY = nil,
-		},
-
-		animators = {}, -- Each section gets an animator object, store them here for easy access later on
-		cache = {}
+		animators = {},
+		cache = {},
+		last = nil
 	}
 
-	-- Build the hit testing cache
-	--[[
-		cache = {
-			[n] = { // Each ring is in an array index
-				Min, // Min radius of this ring
-				Max, // Max radius of this ring
-				Count, // Number of sections in the ring
-				[n] = { // Each section is in an array index
-					sM, // String name of this section's meter
-					oM, // meter object of this section's meter
-					Min, // Min angle
-					Max, // Max angle
-					Special, // True if Min is greater than Max (ie the section covers an area that overlaps angle = 0)
-					Col, // The color of this section
-					Image, // The image to show when this section is selected
-					Bang, // The bang to execute when this section is clicked
-					Animator, // Animator object that controls the fade in/out of this section
-				},
-			},
-		}
-	]]--
-	local iCurRad = tC.StartRadius
 	for iRing=1,tC.Count do
 		local sPre = tC.f.RingMeterPre(iRing)
-		tHT.cache[iRing] = {}
-		tHT.cache[iRing].Min = iCurRad
-		iCurRad = iCurRad + RmGetUInt(sPre .. "Size", 50)
-		tHT.cache[iRing].Max = iCurRad
 
 		local iCount = RmGetUInt(sPre .. "Count", 1)
 		if iCount == 0 then iCount = 1 end
-
-		tHT.cache[iRing].Count = iCount
 		
 		for iSect=1,iCount do
-			tHT.cache[iRing][iSect] = {}
-			local o = tHT.cache[iRing][iSect]
+			tHT.cache[tC.f.Meter(iRing, iSect)] = {}
+			local o = tHT.cache[tC.f.Meter(iRing, iSect)]
 
 			o.sM = tC.f.Meter(iRing, iSect)
 			o.oM = SKIN:GetMeter(o.sM)
 
-			o.Min = ReMapRadians( tonumber(o.oM:GetOption("StartAngle")) )
-			o.Max = ReMapRadians( o.Min + tonumber(o.oM:GetOption("RotationAngle")) )
-
-			o.Special = (o.Min > o.Max)
-
-			local sPre = tC.f.ConfigPre(iRing, iSect)
+			local sPre = o.sM
 			o.Col = StripAlpha(SKIN:GetVariable(sPre .. "Color", ""))
 			if o.Col == nil then
 				o.Col = o.oM:GetOption("HoverColor")
@@ -206,92 +155,17 @@ function Initialize()
 						SKIN:Bang("!SetOption", o.sM, "LineColor", o.Col .. "," .. math.floor(nVal))
 					end
 				)
-			o.Animator:SetTarget(1, 3)
+			o.Animator:SetTarget(1, 5)
 			table.insert(tHT.animators, o.Animator)
 		end
 	end
 
-	function tHT:Update()
-		-- Only hit test if the mouse is over our skin
-		if not self.Mouse.isOver then return end
-
-		-- Get the current cursor position
-		local iX = self.Mouse.oX:GetValue()
-		local iY = self.Mouse.oY:GetValue()
-
-		-- Skip hit testing if the previous update cycle already processed these coordinates
-		if self.oldX == iX and self.oldY == iY then return end
-		self.oldX = iX
-		self.oldY = iY		
-
-		-- Cursor position relative to a Cartesian plane whose origin is at the center of client area of our skin's window
-		local iCX = iX - self.HalfSize
-		local iCY = -(iY - self.HalfSize)
-		-- Cursor position in polar coordinates relative to the above values
-		local nRadius = math.sqrt(iCX^2 + iCY^2)
-		local nTheta = ReMapRadians( -(math.atan2(iCY, iCX)) )
-
-		local iRing = nil
-		local iSect = nil
-
-		-- Attempt to find out which ring the cursor is over
-		for i=1,tC.Count do
-			if nRadius >= self.cache[i].Min and nRadius <= self.cache[i].Max then
-				iRing = i
-				break
-			end
-		end
-
-		-- Attempt to find out which section the cursor is over
-		if iRing ~= nil then
-			--Single sectioned ring, we are definitely over the only section
-			if self.cache[iRing].Count == 1 then
-				iSect = 1
-			else
-				for i=1,self.cache[iRing].Count do
-					local o = self.cache[iRing][i]
-
-					if (nTheta >= o.Min and nTheta <= o.Max) or (o.Special and (nTheta >= o.Min or nTheta <= o.Max)) then
-						iSect = i
-						break
-					end			
-				end
-			end
-		end
-
-		if iRing ~= nil and iSect ~= nil then
-			if iRing ~= self.last.ring or iSect ~= self.last.sect then
-				if self.last.isValid() then
-					self.cache[self.last.ring][self.last.sect].Animator:SetTarget(1, tC.a.SectionFadeOutStep)
-
-					if self.cache[self.last.ring][self.last.sect].Image ~= "" then
-						ShowFader(self.cache[self.last.ring][self.last.sect].Image)
-					end
-				end
-
-				self.cache[iRing][iSect].Animator:SetTarget(tC.a.SectionMaxAlpha, tC.a.SectionFadeInStep)
-				if self.cache[iRing][iSect].Image == "" then
-					SKIN:Bang("!SetOption", "CenterText", "Text", ("%ss%s"):format(iRing, iSect))
-					HideImage()
-				else
-					SKIN:Bang("!SetOption", "CenterText", "Text", "")
-					ShowImage(self.cache[iRing][iSect].Image)
-				end
-			end
-			
-			self.last.ring = iRing
-			self.last.sect = iSect
-		else
-			SKIN:Bang("!SetOption", "CenterText", "Text", "")
-		end
-	end
+	--SKIN:Bang("!SetOption", "CenterText", "Text", "")
 end
 
 
 
 function Update()
-	tHT:Update()
-
 	oCenterAnim:Update()
 	oCenterFadeAnim:Update()
 
@@ -325,27 +199,37 @@ end
 
 
 -- Mouse events
-function onHover()
-	tHT.Mouse.isOver = true
-	tC.m.CenterText:Show()
-end
-function onLeave()
-	tHT.Mouse.isOver = false
-	tC.m.CenterText:Hide()
-	HideImage()
+function onHover(sMeter)
+	--print("onHover: " .. sMeter)
+	tHT.cache[sMeter].Animator:SetTarget(tC.a.SectionMaxAlpha, tC.a.SectionFadeInStep)
 
-	if tHT.last.isValid() then
-		tHT.cache[tHT.last.ring][tHT.last.sect].Animator:SetTarget(1, tC.a.SectionFadeOutStep)
-
-		tHT.last.ring = nil
-		tHT.last.sect = nil
+	if tHT.cache[sMeter].Image == "" then
+		SKIN:Bang("!SetOption", "CenterText", "Text", sMeter)
+		HideImage()
+	else
+		SKIN:Bang("!SetOption", "CenterText", "Text", "")
+		ShowImage(tHT.cache[sMeter].Image)
 	end
+
+	tHT.last = sMeter
 end
-function onClick()
-	if tHT.last.isValid() then
-		if tHT.cache[tHT.last.ring][tHT.last.sect].Bang ~= "" then
-			SKIN:Bang(tHT.cache[tHT.last.ring][tHT.last.sect].Bang)
-		end
+function onLeave(sMeter)
+	--print("onLeave: " .. sMeter)
+	tHT.cache[sMeter].Animator:SetTarget(1, tC.a.SectionFadeOutStep)
+
+	if tHT.cache[tHT.last].Image == tHT.cache[sMeter].Image then
+		HideImage()
+	end
+	if tHT.cache[sMeter].Image ~= "" then
+		ShowFader(tHT.cache[sMeter].Image)
+	end
+
+	SKIN:Bang("!SetOption", "CenterText", "Text", "")
+end
+function onClick(sMeter)
+	--print("onClick: " .. sMeter)
+	if tHT.cache[sMeter].Bang ~= "" then
+		SKIN:Bang(tHT.cache[sMeter].Bang)
 	end
 end
 
@@ -365,13 +249,14 @@ function rebuildSkin()
 	local iCurRad = tC.StartRadius -- Current radius
 	local oMeters = iniBuilder() -- iniBuilder for the meters
 	local oBorders = iniBuilder() -- iniBuilder for the borders
+	local sMeters = ""
 
 	-- Create first circle border
 	local o = oBorders:NewSection( tC.f.CircleBorder(0) )
 		o:AddKey("Meter", "Roundline")
 		o:AddKey("MeterStyle", "Section|CircleBorder")
 		o:AddKey("LineStart", iCurRad)
-      o:AddKey("LineLength", iCurRad + tC.iBorderTk)
+		o:AddKey("LineLength", iCurRad + tC.iBorderTk)
 	o:Commit()
 
 	for iRing=1,tC.Count do
@@ -389,21 +274,26 @@ function rebuildSkin()
 			o:AddKey("Meter", "Roundline")
 			o:AddKey("MeterStyle", "Section|CircleBorder")
 			o:AddKey("LineStart", iEndRadius)
-         o:AddKey("LineLength", iEndRadius + tC.iBorderTk)
+			o:AddKey("LineLength", iEndRadius + tC.iBorderTk)
 		o:Commit()
 
 		for iSect=1,iCount do
 			local nStartAngle = PI2 / iCount * (iSect-1) + nOffset
-         local nBorderOffset = (tC.iBorderTk / (PI2 * iEndRadius)) * math.pi
+			local nBorderOffset = (tC.iBorderTk / (PI2 * iEndRadius)) * math.pi
 
+			sMeters = sMeters .. tC.f.Meter(iRing, iSect) .. " "
 			o = oMeters:NewSection( tC.f.Meter(iRing, iSect) )
 				o:AddKey("Meter", "Roundline")
 				o:AddKey("MeterStyle", "Section")
-            o:AddKey("StartAngle", nStartAngle + nBorderOffset)
-            o:AddKey("RotationAngle", PI2 / iCount - nBorderOffset*2)
+				o:AddKey("StartAngle", nStartAngle + nBorderOffset)
+				o:AddKey("RotationAngle", PI2 / iCount - nBorderOffset*2)
 				o:AddKey("LineStart", iCurRad)
 				o:AddKey("LineLength", iEndRadius)
 				o:AddKey("HoverColor", HSLtoRGB(iSect/iCount, 0.7, 0.75))
+
+				o:AddKey("OverAction", "[!CommandMeasure \"Lua\" \"onHover('#CURRENTSECTION#')\"]")
+				o:AddKey("LeaveAction", "[!CommandMeasure \"Lua\" \"onLeave('#CURRENTSECTION#')\"]")
+				o:AddKey("ClickAction", "[!CommandMeasure \"Lua\" \"onClick('#CURRENTSECTION#')\"]")
 			o:Commit()
 
 			if iCount > 1 then
@@ -414,22 +304,25 @@ function rebuildSkin()
 					o:AddKey("RotationAngle", PI2 / iCount)
 					o:AddKey("LineStart", iCurRad)
 					o:AddKey("LineLength", iEndRadius)
-               o:AddKey("LineWidth", tC.iBorderTk)
+					o:AddKey("LineWidth", tC.iBorderTk)
 				o:Commit()
 			end
 		end
 
-      iCurRad = iEndRadius + tC.iBorderTk
+		iCurRad = iEndRadius + tC.iBorderTk
 	end
 
 	o = oBorders:NewSection("Variables")
-      o:AddKey("Size", iCurRad * 2 + tC.iBorderTk*2)
+		o:AddKey("Size", iCurRad * 2 + tC.iBorderTk*2)
 	o:Commit()
 
 	-- Write the file
 	local file = io.open(SKIN:GetVariable("@") .. "Meters.inc", "w+")
 	file:write( oMeters:ToString() .. "\n" .. oBorders:ToString() )
 	file:close()
+
+	SKIN:Bang("!WriteKeyValue", "HitTester", "Meters", sMeters)	
+
 	-- Reload the skin
 	SKIN:Bang("!Refresh")
 end
