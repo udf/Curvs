@@ -126,8 +126,6 @@ function UInt(n)
 end
 
 function IsAngleInRange(nAngle, nMin, nMax)
-	print(nAngle, nMin, nMax)
-
 	if nMin == nMax then
 		return true
 	end
