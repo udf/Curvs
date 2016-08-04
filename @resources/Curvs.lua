@@ -295,7 +295,7 @@ function rebuildSkin()
 				o:AddKey("ClickAction", "[!CommandMeasure \"Lua\" \"onClick('#CURRENTSECTION#')\"]")
 			o:Commit()
 
-			if iCount > 1 and tC.iBorderTk <= 0 then
+			if iCount > 1 and tC.iBorderTk >= 0 then
 				o = oBorders:NewSection( tC.f.Border(iRing, iSect) )
 					o:AddKey("Meter", "Roundline")
 					o:AddKey("MeterStyle", "Section|LineBorder")
