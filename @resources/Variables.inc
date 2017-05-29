@@ -8,7 +8,7 @@ BorderColor=255,255,255
 
 ; Ring[n].Count - the number of button sections in the specified ring, where [n] is a number in the range 1-RingCount
 ; Ring[n].Size - the size of the specified ring, where [n] is a number in the range 1-RingCount
-; Ring[n].Offset - extra rotation of a ring in radians (#2PI# is 360 degrees, that means that #2PI#/16 is a sixteenth of 360 degrees or 22.5 degrees)
+; Ring[n].Offset - extra rotation of a ring in degrees
 RingCount=2
 RingCenterSize=60
 
@@ -17,7 +17,7 @@ Ring1.Size=40
 
 Ring2.Count=8
 Ring2.Size=50
-Ring2.Offset=(#2PI#/16)
+Ring2.Offset=22.5
 
 ; IMPORTANT: Please note that changing any of the Ring... options above require you to rebuild the skin
 ; To rebuild the skin, right click on the skin and click on the "Rebuild skin" option in the context menu
