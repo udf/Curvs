@@ -1,7 +1,9 @@
 [Variables]
-; The color of the circular borders around each ring, and the lines that divide the button sections
+; The color of the circular borders around each ring and the lines that divide the buttons
 ; Best kept at the default (255,255,255)
 BorderColor=255,255,255
+; The size (in pixels) of the circular borders around each ring and the lines that divide the buttons
+BorderSize=2
 
 ; RingCount is how many rings with "buttons" the launcher has
 ; RingCenterSize - the size of the image display in the center of the skin

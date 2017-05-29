@@ -78,5 +78,11 @@ Meter=Shape
 MeterStyle=StyleButton
 Shape=Arc 115.48,-47.84,115.48,47.84,125.00,125.00 | StrokeWidth 50.00 | Extend OffsetTransform,StyleAttributes
 StyleAttributes=Stroke Color 235,146,146
+[borders]
+Meter=Shape
+MeterStyle=StyleBorder
+Shape=Ellipse 0,0,60.00 | Extend OffsetTransform,StyleAttributes
+Shape2=Ellipse 0,0,100.00 | Extend OffsetTransform,StyleAttributes
+Shape3=Ellipse 0,0,150.00 | Extend OffsetTransform,StyleAttributes
 [Variables]
-Offset=150
+ButtonShift=150

@@ -30,13 +30,20 @@ function rebuild()
 			radiusMid, radiusMid, radiusEnd - radiusStart)
 	end
 
+	local Ellipse = function(radius)
+		return ("Ellipse 0,0,%.2f | Extend OffsetTransform,StyleAttributes"):format(radius)
+	end
+
 	local ringCount = RmGetUInt("RingCount", 1)
 	if ringCount == 0 then ringCount = 1 end
 	local currentRadius = RmGetUInt("RingCenterSize", 60)
 	if currentRadius == 0 then currentRadius = 60 end
 
-
 	local oMeters = iniBuilder()
+	local oBorders = oMeters:NewSection("borders")
+	oBorders:AddKey("Meter", "Shape")
+	oBorders:AddKey("MeterStyle", "StyleBorder")
+	oBorders:AddKey("Shape", Ellipse(currentRadius))
 
 	for ring=1,ringCount do
 		local prefix = ("Ring%s"):format(ring)
@@ -58,10 +65,13 @@ function rebuild()
 		end
 
 		currentRadius = endRadius
+		oBorders:AddKey("Shape" .. (ring+1), Ellipse(currentRadius))
 	end
 
+	oBorders:Commit()
+
 	o = oMeters:NewSection("Variables")
-		o:AddKey("Offset", currentRadius)
+		o:AddKey("ButtonShift", currentRadius)
 	o:Commit()
 
 	-- Write the file
