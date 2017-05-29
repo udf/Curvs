@@ -1,4 +1,3 @@
-; Note: This file contains meters that appear below the borders, until I figure out how to set the zpos on a meter, this is file stays
 [CenterText]
 Meter=String
 W=(sqrt(2 * (#RingCenterSize#**2)))
@@ -14,7 +13,6 @@ StringEffect=SHADOW
 FontEffectColor=0,0,0,100
 ClipString=1
 
-; TODO: Figure out how to actually AntiAlias an image when resizing it with a MaskImage
 [Center]
 Meter=Image
 ImagePath=#ImagePath#
