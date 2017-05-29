@@ -39,7 +39,13 @@ function Initialize()
 			Buttons[buttonName].image = SKIN:GetVariable(buttonName .. "Image", "")
 			Buttons[buttonName].bang = SKIN:GetVariable(buttonName .. "Bang", "")
 
-			Buttons[buttonName].color = "Stroke Color " .. StripAlpha(SKIN:GetVariable(buttonName .. "Color", "0,0,0"))
+			Buttons[buttonName].color = StripAlpha(SKIN:GetVariable(buttonName .. "Color", ""))
+			if Buttons[buttonName].color == nil then
+				Buttons[buttonName].color = SKIN:GetMeter(buttonName):GetOption("StyleAttributes")
+			else
+				Buttons[buttonName].color = "Stroke Color " .. Buttons[buttonName].color
+			end
+
 			Buttons[buttonName].animator = Animator(
 					AnimationMaxAlpha,
 					AnimationFadeOutStep,
@@ -97,7 +103,7 @@ function onLeave(sectionName)
 	--print("onLeave", sectionName)
 	Buttons[sectionName].animator:SetTarget(AnimationMinAlpha, AnimationFadeOutStep)
 
-	if Buttons[LastMeter].image == Buttons[sectionName].image then
+	if sectionName == LastMeter then
 		HideImage()
 	end
 	if Buttons[sectionName].image ~= "" then
