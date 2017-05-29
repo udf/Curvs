@@ -33,6 +33,13 @@ function rebuild()
 	local Ellipse = function(radius)
 		return ("Ellipse 0,0,%.2f | Extend OffsetTransform,StyleAttributes"):format(radius)
 	end
+	local Line = function(radiusStart, radiusEnd, angle)
+		angle = math.rad(angle)
+		return ("Line %.2f,%.2f,%.2f,%.2f | Extend OffsetTransform,StyleAttributes"):format(
+			radiusStart*math.cos(angle), radiusStart*math.sin(angle), 
+			radiusEnd*math.cos(angle), radiusEnd*math.sin(angle)
+			)
+	end
 
 	local ringCount = RmGetUInt("RingCount", 1)
 	if ringCount == 0 then ringCount = 1 end
@@ -44,6 +51,7 @@ function rebuild()
 	oBorders:AddKey("Meter", "Shape")
 	oBorders:AddKey("MeterStyle", "StyleBorder")
 	oBorders:AddKey("Shape", Ellipse(currentRadius))
+	local borderShapeIndex = 2
 
 	for ring=1,ringCount do
 		local prefix = ("Ring%s"):format(ring)
@@ -56,16 +64,21 @@ function rebuild()
 		local endRadius = currentRadius + ringSize
 
 		for button=1,buttonCount do
+			local angleIncrement = 360 / buttonCount
 			local o = oMeters:NewSection(("%ss%s"):format(ring, button))
 				o:AddKey("Meter", "Shape")
 				o:AddKey("MeterStyle", "StyleButton")
-				o:AddKey("Shape", Arc(currentRadius, endRadius, (button-1)/buttonCount * 360 + buttonOffset, button/buttonCount * 360 + buttonOffset) .. " | Extend OffsetTransform,StyleAttributes")
+				o:AddKey("Shape", Arc(currentRadius, endRadius, (button-1) * angleIncrement + buttonOffset, button * angleIncrement + buttonOffset) .. " | Extend OffsetTransform,StyleAttributes")
 				o:AddKey("StyleAttributes", ("Stroke Color %s"):format(HSLtoRGB(button/buttonCount, 0.7, 0.75)))
 			o:Commit()
+
+			oBorders:AddKey("Shape" .. borderShapeIndex, Line(currentRadius, endRadius, button * angleIncrement + buttonOffset))
+			borderShapeIndex = borderShapeIndex + 1
 		end
 
 		currentRadius = endRadius
-		oBorders:AddKey("Shape" .. (ring+1), Ellipse(currentRadius))
+		oBorders:AddKey("Shape" .. borderShapeIndex, Ellipse(currentRadius))
+		borderShapeIndex = borderShapeIndex + 1
 	end
 
 	oBorders:Commit()
